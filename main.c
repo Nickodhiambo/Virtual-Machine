@@ -59,6 +59,97 @@ enum
 // Define LC-3 condition flags
 enum{
     FL_POS = 1 << 0,  /* P */
-    FL_ZRO = 1 << 2,  /* Z*/
-    FL_POS = 1 << 2,  /* N */
+    FL_ZRO = 1 << 1,  /* Z*/
+    FL_NEG = 1 << 2,  /* N */
+}
+
+// Main loop
+int main(int argc, const char* argv[])
+{
+    /* Take command line argumnets*/
+    if (argc < 2)
+    {
+        /* Show usage string*/
+        printf("lc3 [image-file]...\n");
+        exit(2)
+    }
+
+    for (int j = 1; j < argc; ++j)
+    {
+        if (!(read_image(argv[j])))
+        {
+            printf("Failed to load image: %s\n", argv[j]);
+            exit(1);
+        }
+    }
+    /* Only one condition flag should be set*/
+    /* Set Z flag*/
+    reg[R_COND] = FL_ZRO;
+
+    /* Set program counter to starting position*/
+    /* 0x3000 is the default starting position*/
+    enum { PC_START = 0X3000 };
+    reg[R_PC] = PC_START;
+
+    int running = 1;
+    while (running)
+    {
+        /* FETCH the next instruction from memory*/
+        uint16_t instruction = mem_read(reg[R_PC]++);
+        uint16_t opcode = instruction >> 12;
+
+        /* Execute an opcode*/
+        switch(op)
+        {
+            case OP_ADD:
+                add();
+                break;
+            case OP_AND:
+                and()
+                break;
+            case OP_BR:
+                br();
+                break;
+            case OP_JMP:
+                jmp();
+                break;
+            case OP_JSR:
+                jsr()
+                break;
+            case OP_LD:
+                ld()
+                break;
+            case OP_LDI:
+                ldi()
+                break;
+            case OP_LDR:
+                ldr()
+                break;
+            case OP_LEA:
+                lea()
+                break;
+            case OP_NOT:
+                not()
+                break;
+            case OP_ST:
+                st()
+                break;
+            case OP_STR():
+                str()
+                break;
+            case OP_STI:
+                sti()
+                break;
+            case OP_TRAP:
+                trap()
+                break;
+            case OP_RES:
+            case OP_RTI:
+            default:
+                bad_opcode()
+                break;
+        }
+    }
+    shutdown()
+
 }
