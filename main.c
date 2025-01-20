@@ -13,7 +13,7 @@
 #include <conio.h>
 
 #define MEMORY_MAX (1 << 16)
-uint16_t memory[MEMORY_MAX]; //65536 memory locations
+uint16_t memory[MEMORY_MAX]; // 65536 memory locations
 
 /* Define LC-3 registers*/
 enum
@@ -26,7 +26,7 @@ enum
     R_R5,
     R_R6,
     R_R7,
-    R_PC,  /* Program counter*/
+    R_PC, /* Program counter*/
     R_COND,
     R_COUNT
 };
@@ -34,37 +34,38 @@ enum
 /* Store registers in an array*/
 uint16_t reg[R_COUNT];
 
-
 /* Get LC-3 Opcodes*/
 enum
 {
     OP_BR = 0, /* branch */
-    OP_ADD, /* add */
-    OP_LD, /* load */
-    OP_ST, /* store */
-    OP_JSR, /* jump register */
-    OP_AND, /* bitwise and */
-    OP_LDR, /* load register */
-    OP_STR, /* store register*/
-    OP_RTI, /* unused */
-    OP_NOT, /* bitwise not */
-    OP_LDI, /* load indirect */
-    OP_STI, /* store indirect */
-    OP_JMP, /* jump */
-    OP_RES, /* reserved (unused)*/
-    OP_LEA, /* load effective address */
-    OP_TRAP, /* execute trap */
+    OP_ADD,    /* add */
+    OP_LD,     /* load */
+    OP_ST,     /* store */
+    OP_JSR,    /* jump register */
+    OP_AND,    /* bitwise and */
+    OP_LDR,    /* load register */
+    OP_STR,    /* store register*/
+    OP_RTI,    /* unused */
+    OP_NOT,    /* bitwise not */
+    OP_LDI,    /* load indirect */
+    OP_STI,    /* store indirect */
+    OP_JMP,    /* jump */
+    OP_RES,    /* reserved (unused)*/
+    OP_LEA,    /* load effective address */
+    OP_TRAP,   /* execute trap */
 };
 
 // Define LC-3 condition flags
-enum{
-    FL_POS = 1 << 0,  /* P */
-    FL_ZRO = 1 << 1,  /* Z*/
-    FL_NEG = 1 << 2,  /* N */
+enum
+{
+    FL_POS = 1 << 0, /* P */
+    FL_ZRO = 1 << 1, /* Z*/
+    FL_NEG = 1 << 2, /* N */
 }
 
 // Main loop
-int main(int argc, const char* argv[])
+int
+main(int argc, const char *argv[])
 {
     /* Take command line argumnets*/
     if (argc < 2)
@@ -88,68 +89,78 @@ int main(int argc, const char* argv[])
 
     /* Set program counter to starting position*/
     /* 0x3000 is the default starting position*/
-    enum { PC_START = 0X3000 };
+    enum
+    {
+        PC_START = 0X3000
+    };
     reg[R_PC] = PC_START;
 
     int running = 1;
     while (running)
     {
-        /* FETCH the next instruction from memory*/
+        /* FETCH the next instruction from memory */
         uint16_t instruction = mem_read(reg[R_PC]++);
         uint16_t opcode = instruction >> 12;
 
         /* Execute an opcode*/
-        switch(op)
+        switch (opcode)
         {
-            case OP_ADD:
-                add();
-                break;
-            case OP_AND:
-                and()
-                break;
-            case OP_BR:
-                br();
-                break;
-            case OP_JMP:
-                jmp();
-                break;
-            case OP_JSR:
-                jsr()
-                break;
-            case OP_LD:
-                ld()
-                break;
-            case OP_LDI:
-                ldi()
-                break;
-            case OP_LDR:
-                ldr()
-                break;
-            case OP_LEA:
-                lea()
-                break;
-            case OP_NOT:
-                not()
-                break;
-            case OP_ST:
-                st()
-                break;
-            case OP_STR():
-                str()
-                break;
-            case OP_STI:
-                sti()
-                break;
-            case OP_TRAP:
-                trap()
-                break;
-            case OP_RES:
-            case OP_RTI:
-            default:
-                bad_opcode()
-                break;
+        case OP_ADD:
+            add();
+            break;
+        case OP_AND:
+            and() break;
+        case OP_BR:
+            br();
+            break;
+        case OP_JMP:
+            jmp();
+            break;
+        case OP_JSR:
+            jsr() break;
+        case OP_LD:
+            ld() break;
+        case OP_LDI:
+            ldi() break;
+        case OP_LDR:
+            ldr() break;
+        case OP_LEA:
+            lea() break;
+        case OP_NOT:
+            not() break;
+        case OP_ST:
+            st() break;
+        case OP_STR():
+            str() break;
+        case OP_STI:
+            sti() break;
+        case OP_TRAP:
+            trap() break;
+        case OP_RES:
+        case OP_RTI:
+        default:
+            bad_opcode() break;
         }
     }
     shutdown()
+}
 
+// Sign extend function
+uint16_t signExtend(uint16_t bit_string, int bit_count)
+{
+    if ((bit_string >> (bit_count - 1)) & 1)
+        bit_string |= (0XFFFF << bit_count);
+    return bit_string
+}
+
+/* Any time a value is written in a register */
+/* Update the flags to indicate its sign */
+void updateFlags(unint16_t r)
+{
+    if (reg[r] == 0)
+        reg[R_COND] = FL_ZRO;
+    else if (reg[r] >> 15) /* A one in the left-most bit indicates a negative number*/
+        reg[R_COND] = FL_NEG;
+    else
+        reg[R_COND] = FL_POS;
 }
