@@ -105,43 +105,63 @@ main(int argc, const char *argv[])
         /* Execute an opcode*/
         switch (opcode)
         {
-        case OP_ADD:
-            add();
+            case OP_ADD:
+            {
+                /* Get destination register from instruction*/
+                uint16_t r0 = (instruction >> 9) & 0x7;
+                /* Get first operand */
+                uint16_t r1 = (instruction >> 6) & 0x7;
+                /* Check whether we are in immediate mode */
+                uint16_t imm_flag = (instruction >> 5) & 1;
+
+                if (imm_flag)
+                {
+                    uint16_t imm5 = signExtend(instruction & 0X1F, 5);
+                    reg[r0] = reg[r1] + imm5;
+                }
+                else
+                {
+                    uint16_t r2 = instruction & 0x7;
+                    reg[r0] = reg[r1] + reg[r2];
+                }
+
+                updateFlags(r0);
+            }
             break;
-        case OP_AND:
-            and() break;
-        case OP_BR:
-            br();
-            break;
-        case OP_JMP:
-            jmp();
-            break;
-        case OP_JSR:
-            jsr() break;
-        case OP_LD:
-            ld() break;
-        case OP_LDI:
-            ldi() break;
-        case OP_LDR:
-            ldr() break;
-        case OP_LEA:
-            lea() break;
-        case OP_NOT:
-            not() break;
-        case OP_ST:
-            st() break;
-        case OP_STR():
-            str() break;
-        case OP_STI:
-            sti() break;
-        case OP_TRAP:
-            trap() break;
-        case OP_RES:
-        case OP_RTI:
-        default:
-            bad_opcode() break;
+            case OP_AND:
+                and() break;
+            case OP_BR:
+                br();
+                break;
+            case OP_JMP:
+                jmp();
+                break;
+            case OP_JSR:
+                jsr() break;
+            case OP_LD:
+                ld() break;
+            case OP_LDI:
+                ldi() break;
+            case OP_LDR:
+                ldr() break;
+            case OP_LEA:
+                lea() break;
+            case OP_NOT:
+                not() break;
+            case OP_ST:
+                st() break;
+            case OP_STR():
+                str() break;
+            case OP_STI:
+                sti() break;
+            case OP_TRAP:
+                trap() break;
+            case OP_RES:
+            case OP_RTI:
+            default:
+                bad_opcode() break;
+            }
         }
-    }
     shutdown()
 }
 
@@ -155,7 +175,7 @@ uint16_t signExtend(uint16_t bit_string, int bit_count)
 
 /* Any time a value is written in a register */
 /* Update the flags to indicate its sign */
-void updateFlags(unint16_t r)
+void updateFlags(uint16_t r)
 {
     if (reg[r] == 0)
         reg[R_COND] = FL_ZRO;
