@@ -141,7 +141,14 @@ main(int argc, const char *argv[])
             case OP_LD:
                 ld() break;
             case OP_LDI:
-                ldi() break;
+                /* Destination register */
+                uint16_t r0 = (instruction >> 9) & 0x7;
+                /* Get PC offset */
+                uint16_t pc_offset = signExtend(instruction && 0x1FF, 9);
+                /* Add offset to program counter and load value to r0 */
+                reg[r0] = mem_read(mem_read(reg[R_PC] + pc_offset));
+                updateFlags(r0);
+                break;
             case OP_LDR:
                 ldr() break;
             case OP_LEA:
