@@ -112,7 +112,7 @@ main(int argc, const char *argv[])
                 /* Get first operand */
                 uint16_t r1 = (instruction >> 6) & 0x7;
                 /* Check whether we are in immediate mode */
-                uint16_t imm_flag = (instruction >> 5) & 1;
+                uint16_t imm_flag = (instruction >> 5) & 0x1;
 
                 if (imm_flag)
                 {
@@ -129,7 +129,23 @@ main(int argc, const char *argv[])
             }
             break;
             case OP_AND:
-                and() break;
+                /* Destination register */
+                uint16_t ro = (instruction >> 9) & 0x7;
+                uint16_t r1 = (instruction >> 6) & 0x7;
+                uint16_t imm_flag = (instruction >> 5) & 0x1;
+                
+                if (imm_flag)
+                {
+                    uint16_t imm5 = signExtend(instruction & 0x1F, 5);
+                    reg[ro] = reg[r1] & imm5;
+                }
+                else
+                {
+                    uint16_t r2 = instruction & 0x7;
+                    reg[ro] = reg[r1] & reg[r2];
+                }
+                updateFlags(ro);
+                break;
             case OP_BR:
                 br();
                 break;
@@ -154,7 +170,11 @@ main(int argc, const char *argv[])
             case OP_LEA:
                 lea() break;
             case OP_NOT:
-                not() break;
+                uint16_t ro = (instruction >> 9) & 0x7;
+                uint16_t r1 = (instruction >> 6) & 0x7;
+                reg[ro] = ~reg[r1];
+                updateFlags(ro);
+                break;
             case OP_ST:
                 st() break;
             case OP_STR():
@@ -166,7 +186,7 @@ main(int argc, const char *argv[])
             case OP_RES:
             case OP_RTI:
             default:
-                bad_opcode() break;
+                abort() break;
             }
         }
     shutdown()
