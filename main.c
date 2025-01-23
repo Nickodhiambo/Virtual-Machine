@@ -131,21 +131,21 @@ main(int argc, const char *argv[])
             case OP_AND:
             {
                 /* Destination register */
-                uint16_t ro = (instruction >> 9) & 0x7;
+                uint16_t r0 = (instruction >> 9) & 0x7;
                 uint16_t r1 = (instruction >> 6) & 0x7;
                 uint16_t imm_flag = (instruction >> 5) & 0x1;
                 
                 if (imm_flag)
                 {
                     uint16_t imm5 = signExtend(instruction & 0x1F, 5);
-                    reg[ro] = reg[r1] & imm5;
+                    reg[r0] = reg[r1] & imm5;
                 }
                 else
                 {
                     uint16_t r2 = instruction & 0x7;
-                    reg[ro] = reg[r1] & reg[r2];
+                    reg[r0] = reg[r1] & reg[r2];
                 }
-                updateFlags(ro);
+                updateFlags(r0);
                 break;
             }
             case OP_BR:
@@ -187,13 +187,21 @@ main(int argc, const char *argv[])
                 }
                 break;
             case OP_LEA:
-                lea() break;
+            {
+                uint16_t r0 = (instruction >> 9) & 0x7;
+                uint16_t pc_offset = signExtend(instruction & 0x1FF, 9);
+                reg[r0] = reg[R_PC] + pc_offset;
+                update(r0);
+            }
+                break;
             case OP_NOT:
-                uint16_t ro = (instruction >> 9) & 0x7;
+            {
+                uint16_t r0 = (instruction >> 9) & 0x7;
                 uint16_t r1 = (instruction >> 6) & 0x7;
                 reg[ro] = ~reg[r1];
-                updateFlags(ro);
+                updateFlags(r0);
                 break;
+            }
             case OP_ST:
                 st() break;
             case OP_STR():
