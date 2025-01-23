@@ -129,6 +129,7 @@ main(int argc, const char *argv[])
             }
             break;
             case OP_AND:
+            {
                 /* Destination register */
                 uint16_t ro = (instruction >> 9) & 0x7;
                 uint16_t r1 = (instruction >> 6) & 0x7;
@@ -146,6 +147,7 @@ main(int argc, const char *argv[])
                 }
                 updateFlags(ro);
                 break;
+            }
             case OP_BR:
                 br();
                 break;
@@ -155,8 +157,15 @@ main(int argc, const char *argv[])
             case OP_JSR:
                 jsr() break;
             case OP_LD:
-                ld() break;
+                {
+                    uint16_t r0 = (instruction >> 9) & 0x7;
+                    uint16_t pc_offset = signExtend(instruction & 0x1FF, 9);
+                    reg[r0] = mem_read(reg[R_PC] + pc_offset);
+                    updateFlags(r0);
+                }
+                break;
             case OP_LDI:
+            {
                 /* Destination register */
                 uint16_t r0 = (instruction >> 9) & 0x7;
                 /* Get PC offset */
@@ -165,8 +174,18 @@ main(int argc, const char *argv[])
                 reg[r0] = mem_read(mem_read(reg[R_PC] + pc_offset));
                 updateFlags(r0);
                 break;
+            }
             case OP_LDR:
-                ldr() break;
+                {
+                    uint16_t r0 = (instruction >> 9) & 0x7;
+                    /* Base register */
+                    uint16_t r1 = (instruction >> 6) & 0x7;
+                    /* offset */
+                    uint16_t offset = signExtend(instruction & 0x3F, 6);
+                    reg[r0] = mem_read(reg[r1] + offset);
+                    updateFlags(r0);
+                }
+                break;
             case OP_LEA:
                 lea() break;
             case OP_NOT:
