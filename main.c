@@ -148,10 +148,22 @@ int main(int argc, const char *argv[])
                 break;
             }
             case OP_BR:
-                br();
-                break;
+                {
+                    uint16_t pc_offset = signExtend(instruction & 0x1FF, 9);
+                    uint16_t cond_flag = (instruction >> 9) & 0x7;
+
+                    /* Check if any of the condition flag is set */
+                    if (cond_flag & reg[R_COND])
+                    {
+                        reg[R_PC] += pc_offset;
+                    }
+                    break;
+                }
             case OP_JMP:
-                jmp();
+                /* Loads program counter with value provided by */
+                /* bits 8-6 of instruction */
+                uint16_t r1 = (instruction >> 6) && 0x7;
+                reg[R_PC] = reg[r1];
                 break;
             case OP_JSR:
                 jsr() break;
