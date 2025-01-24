@@ -166,7 +166,18 @@ int main(int argc, const char *argv[])
                 reg[R_PC] = reg[r1];
                 break;
             case OP_JSR:
-                jsr() break;
+                uint16_t long_flag = (instruction >> 11) & 1;
+                reg[R_R7] = [R_PC];
+                if (long_flag)
+                {
+                    uint16_t long_pc_offset = signExtend(instruction & 0x7FF, 11);
+                    reg[R_PC] += long_pc_offset;
+                }
+                else
+                {
+                    uint16_t r1 = (instruction >> 6) & 0x7;
+                    reg[R_PC] = reg[r1];
+                }
             case OP_LD:
             {
                 uint16_t r0 = (instruction >> 9) & 0x7;
