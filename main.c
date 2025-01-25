@@ -18,7 +18,7 @@ uint16_t memory[MEMORY_MAX]; // 65536 memory locations
 /* Define LC-3 registers*/
 enum
 {
-    R_RO = 0,
+    R_R0 = 0,
     R_R1,
     R_R2,
     R_R3,
@@ -61,6 +61,17 @@ enum
     FL_POS = 1 << 0, /* P */
     FL_ZRO = 1 << 1, /* Z*/
     FL_NEG = 1 << 2, /* N */
+}
+
+/* TRAP Codes */
+enum
+{
+    TRAP_GETC = 0x20, /* Get char from keyboard, not echoed onto the terminal */
+    TRAP_OUT = 0x21, /* Output a char */
+    TRAP_PUTS = 0x22, /* Outputs a word string */
+    TRAP_IN = 0x23, /* Get char from keyboard, echoed onto the terminal */
+    TRAP_PUTSP = 0x24, /* Outputs a byte string */
+    TRAP_HALT = 0x25 /* Halt the program */
 }
 
 // Main loop
@@ -178,6 +189,7 @@ int main(int argc, const char *argv[])
                     uint16_t r1 = (instruction >> 6) & 0x7;
                     reg[R_PC] = reg[r1];
                 }
+                break;
             case OP_LD:
             {
                 uint16_t r0 = (instruction >> 9) & 0x7;
@@ -246,7 +258,65 @@ int main(int argc, const char *argv[])
                 mem_read(mem_read(reg[R_PC] + pc_offset, reg[r0]));
                 break;
             case OP_TRAP:
-                trap() break;
+                reg[R_R7] = reg[R_R7];
+
+                switch(instruction & 0xFF)
+                {
+                    case TRAP_GETC:
+                    {
+                        /* Read a single ASCII char */
+                        /* Convert it from 8-bit to 16-bit */
+                        reg[R_RO] = (uint16_t)getchar();
+                        updateFlags(R_R0);
+                    }
+                    case TRAP_OUT:
+                    {
+                        /* Output a single ASCII char */
+                        putc((char)reg[R_R0], stdout);
+                        fflush(stdout);
+                    }
+                    case TRAP_PUTS:
+                    {
+                        /* Output one char at a time */
+                        uint16_t* c = memory + reg[R_R0];
+                        while (*c)
+                        {
+                            putc((char)*c, stdout);
+                            ++c;
+                        }
+                        fflush(stdout);
+                    }
+                    case TRAP_IN:
+                    {
+                        /* Prompts for a char */
+                        printf("Enter a character: ");
+                        char c = getchar();
+                        putc(c, stdout);
+                        fflush(stdout);
+                        reg[R_RO] = (uint16_t)c;
+                        updateFlags(R_R0);
+                    }
+                    case TRAP_PUTSP:
+                    {
+                        uint16_t* c = memory + reg[R_R0];
+                        while (*c)
+                        {
+                            char char1 = (*c) & 0xFF;
+                            putc(char1, stdout);
+                            char char2 = (*c) >> 8;
+                            if (char2)
+                                putc(char2, stdout);
+                            ++c;
+                        }
+                        fflush(stdout);
+                    }
+                    case TRAP_HALT:
+                    {
+                        puts("HALT");
+                        fflush(stdout);
+                        running = 0;
+                    }
+                }
             case OP_RES:
             case OP_RTI:
             default:
