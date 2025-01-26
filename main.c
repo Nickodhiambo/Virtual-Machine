@@ -258,7 +258,7 @@ int main(int argc, const char *argv[])
                 mem_read(mem_read(reg[R_PC] + pc_offset, reg[r0]));
                 break;
             case OP_TRAP:
-                reg[R_R7] = reg[R_R7];
+                reg[R_R7] = reg[R_PC];
 
                 switch(instruction & 0xFF)
                 {
@@ -326,6 +326,40 @@ int main(int argc, const char *argv[])
     shutdown()
 }
 
+/* Read compiled assembly into a memory location */
+void read_image_file(FILE* file)
+{
+    /* Origin tells us where in memory to place our binary code */
+    uint16_t origin;
+    fread(&origin, sizeof(origin), 1, file);
+    origin = swap16(origin);
+    uint16_t max_read = MEMORY_MAX - origin;
+    uint16_t* p = memory + origin;
+    size_t read = fread(p, sizeof(uint16_t), max_read, file);
+
+    /* Swap to little endian */
+    while (read--> 0)
+    {
+        *p = swap16(*p);
+        ++p;
+    }
+}
+
+/* Swap function */
+uint16_t swap16(uint16_t x)
+{
+    return (x << 8) | (x >> 8);
+}
+
+/* Read the path to a binary lc3 file */
+int read_image(const char* image_path)
+{
+    FILE* file = fopen(image_path, "rb");
+    if (!file) return 0;
+    read_image_file(file);
+    fclose(file);
+    return 1;
+}
 // Sign extend function
 uint16_t signExtend(uint16_t bit_string, int bit_count)
 {
