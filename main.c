@@ -360,6 +360,36 @@ int read_image(const char* image_path)
     fclose(file);
     return 1;
 }
+
+/* Memory mapped registers */
+enum
+{
+    MR_KBSR = 0xFE00, /* Keyboard status register */
+    MR_KBDR = 0xFE02 /* Keyboard data register */
+};
+
+/* Memory access functions */
+void mem_write(uint16_t address, uint16_t val)
+{
+    memory[address] = val;
+}
+
+uint16_t mem_read(uint16_t address)
+{
+    if (address == MR_KBSR)
+    {
+        if (check_key())
+        {
+            memory[MR_KBSR] = (1 << 15);
+            memory[MR_KBDR] = getchar();
+        }
+        else
+        {
+            memory[MR_KBSR] = 0;
+        }
+    }
+    return memory[address];
+}
 // Sign extend function
 uint16_t signExtend(uint16_t bit_string, int bit_count)
 {
